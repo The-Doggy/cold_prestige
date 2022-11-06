@@ -707,6 +707,7 @@ void SQL_LoadPlayerItems(Database db, DBResultSet results, const char[] error, P
 	} while(results.FetchRow());
 
 	// As of now this is the last thing that gets loaded for players, if this changes in the future these two lines of code need to move
+	// TODO: Create a dedicated function and forward for when players are fully loaded instead of doing this
 	player.Loaded = true;
 	player.Chat("%s Welcome back, you have {green}%i{default} prestige points.\n%s NB: Prestige store is currently in beta, if you encounter any bugs please report them to a developer. Thank you for your patience.", CMDTAG, player.Prestige, CMDTAG);
 }

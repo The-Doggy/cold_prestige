@@ -240,7 +240,9 @@ void ShowStoreItemsMenu(int client, ItemType type)
 		Format(sFormatName, sizeof(sFormatName), "[%s%s]", owned ? "Owned - " : "", sFormatName);
 
 		itemsMenu.AddItem(sID, sFormatName);
+		delete item;
 	}
+	delete items;
 
 	itemsMenu.Display(client, MENU_TIME_FOREVER);
 }
@@ -305,10 +307,12 @@ int StoreItemsHandler(Menu menu, MenuAction action, int param1, int param2)
 				player.Chat("%s You already own this item.", CMDTAG);
 				EmitSoundToClient(param1, "buttons/button8.wav");
 				ShowStoreCategoriesMenu(param1);
+				delete item;
 				return 1;
 			}
 
 			ShowPurchaseMenu(param1, item);
+			delete item;
 		}
 
 		case MenuAction_Cancel:
@@ -441,6 +445,7 @@ int PurchaseHandler(Menu menu, MenuAction action, int param1, int param2)
 			if(player == null || !player.Loaded)
 			{
 				LogError("PurchaseHandler - Player %N's data has not loaded yet.", param1);
+				delete item;
 				return 1;
 			}
 
@@ -448,6 +453,7 @@ int PurchaseHandler(Menu menu, MenuAction action, int param1, int param2)
 			{
 				player.Chat("%s You don't have enough prestige to purchase this item. (Need: %i - Have: %i)", CMDTAG, item.Price, player.Prestige);
 				EmitSoundToClient(param1, "buttons/button8.wav");
+				delete item;
 				return 1;
 			}
 

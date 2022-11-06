@@ -44,7 +44,10 @@ public any Native_GetItemFromID(Handle plugin, int numParams)
 	}
 
 	if(item != null)
+	{
+		// We clone the item here as we never want to be using items directly from the itemlist as they will become invalid whenever the itemlist is reloaded
 		return item.Clone();
+	}
 
 	return view_as<PItem>(null);
 }
@@ -79,7 +82,10 @@ public any Native_GetItemFromType(Handle plugin, int numParams)
 	}
 
 	if(item != null)
+	{
+		// We clone the item here as we never want to be using items directly from the itemlist as they will become invalid whenever the itemlist is reloaded
 		return item.Clone();
+	}
 
 	return view_as<PItem>(null);
 }
@@ -106,7 +112,8 @@ public any Native_GetItemsOfType(Handle plugin, int numParams)
 
 		if(item.Type == type)
 		{
-			items.Push(item);
+			// We clone the item here as we never want to be using items directly from the itemlist as they will become invalid whenever the itemlist is reloaded
+			items.Push(item.Clone());
 			continue;
 		}
 	}
@@ -148,7 +155,8 @@ public any Native_GetItemFromVariable(Handle plugin, int numParams)
 		}
 	}
 
-	return item;
+	// We clone the item here as we never want to be using items directly from the itemlist as they will become invalid whenever the itemlist is reloaded
+	return item.Clone();
 }
 
 public any Native_GetPlayer(Handle plugin, int numParams)

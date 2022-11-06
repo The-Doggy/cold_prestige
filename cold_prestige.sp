@@ -273,6 +273,9 @@ public void CG_ItemPostFrame(int client, int weapon)
 		SetEntProp(client, Prop_Send, "m_bDrawViewmodel", false);
 		player.Chat("%s You need to buy this weapon before you can use it!", CMDTAG);
 	}
+
+	// The GetItem* natives return item clones so we need to delete them to avoid mem leaks
+	delete item;
 }
 
 void OnWeaponSwitchPost(int client, int weapon)

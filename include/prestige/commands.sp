@@ -278,22 +278,7 @@ Action Command_GiveItem(int client, int args)
 		return Plugin_Handled;
 	}
 
-	PItem item;
-	for(int i = 0; i < g_ItemList.Length; i++)
-	{
-		item = g_ItemList.Get(i);
-		if(item == null)
-		{
-			LogError("Command_GiveItem - Found Invalid item in g_ItemList at index %i", i);
-			continue;
-		}
-
-		if(item.ID == id)
-		{
-			break;
-		}
-	}
-
+	PItem item = GetItemFromID(id);
 	if(item != null)
 	{
 		char sName[64];
