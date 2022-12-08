@@ -123,7 +123,8 @@ Action Command_CreateItem(int client, int args)
 	if(args != 4)
 	{
 		CReplyToCommand(client, "%s Invalid Syntax. Usage: sm_createstoreitem <name> <type> <price> <variable>", CMDTAG);
-		CReplyToCommand(client, "%s Valid types are: 1 = ItemType_CustomTag, 2 = ItemType_NameColor, 3 = ItemType_ChatColor, 4 = ItemType_Model, 5 = ItemType_CustomWeapon, 6 = ItemType_PaintColor, 7 = ItemType_PaintSize", CMDTAG);
+		CReplyToCommand(client, "%s Valid types are: 1 = ItemType_CustomTag, 2 = ItemType_NameColor, 3 = ItemType_ChatColor, 4 = ItemType_Model, 5 = ItemType_CustomWeapon, 6 = ItemType_PaintColor, 7 = ItemType_PaintSize, 8 = ItemType_GrenadeModel, " ...
+		"9 = ItemType_GrenadeTrail", CMDTAG);
 		return Plugin_Handled;
 	}
 
@@ -138,7 +139,8 @@ Action Command_CreateItem(int client, int args)
 
 	if(iType < ItemType_CustomTag || iType >= ItemType_Max)
 	{
-		CReplyToCommand(client, "%s Invalid type. Valid types are: 1 = ItemType_CustomTag, 2 = ItemType_NameColor, 3 = ItemType_ChatColor, 4 = ItemType_Model, 5 = ItemType_CustomWeapon, 6 = ItemType_PaintColor, 7 = ItemType_PaintSize", CMDTAG);
+		CReplyToCommand(client, "%s Invalid type. Valid types are: 1 = ItemType_CustomTag, 2 = ItemType_NameColor, 3 = ItemType_ChatColor, 4 = ItemType_Model, 5 = ItemType_CustomWeapon, 6 = ItemType_PaintColor, 7 = ItemType_PaintSize, 8 = ItemType_GrenadeModel, " ...
+		"9 = ItemType_GrenadeTrail", CMDTAG);
 		return Plugin_Handled;
 	}
 
@@ -211,6 +213,21 @@ Action Command_DeleteItem(int client, int args)
 
 	if(item != null)
 	{
+		// Remove item for players that have it
+		for(int i = 1; i <= MaxClients; i++)
+		{
+			PClient player = g_Players[i];
+			if(player == null || !player.Loaded)
+			{
+				continue;
+			}
+
+			if(player.HasItem(item))
+			{
+				player.RemoveInventoryItem(player.GetInventoryItem(id));
+			}
+		}
+
 		item.Delete();
 		CReplyToCommand(client, "%s Deleted item %i from itemlist", CMDTAG, id);
 	}
@@ -354,6 +371,7 @@ Action Command_RemoveCustomGuns(int client, int args)
 			RemoveEntity(weapon);
 		}
 	}
+	SetEntProp(client, Prop_Send, "m_bDrawViewmodel", false);
 	CReplyToCommand(client, "%s Your custom guns have been removed until your next spawn.", CMDTAG);
 	return Plugin_Handled;
 }

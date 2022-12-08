@@ -107,7 +107,8 @@ methodmap PItem < StringMap
 
     public void GetTypeString(char[] buffer, int maxlen)
     {
-    	Format(buffer, maxlen, "%s", this.Type == ItemType_NameColor ? " name color" : this.Type == ItemType_ChatColor ? " chat color" : this.Type == ItemType_Model ? " model" : this.Type == ItemType_PaintColor ? " paint color" : this.Type == ItemType_PaintSize ? " paint size" : "");
+    	Format(buffer, maxlen, "%s", this.Type == ItemType_NameColor ? " name color" : this.Type == ItemType_ChatColor ? " chat color" : this.Type == ItemType_Model ? " model" : this.Type == ItemType_PaintColor ? " paint color" : this.Type == ItemType_PaintSize ? " paint size" : 
+        this.Type == ItemType_GrenadeModel ? " grenade model" : this.Type == ItemType_GrenadeTrail ? " grenade trail" : "");
     }
 
     public void Save()
@@ -137,10 +138,6 @@ methodmap PItem < StringMap
 
         char query[512];
         g_Database.Format(query, sizeof(query), "DELETE FROM cold_prestige_itemlist WHERE itemid=%i;", this.ID);
-        g_Database.Query(SQL_DeleteItem, query);
-
-        // This second query only exists because I'm dumb and didn't set the itemid column in the items table as a foreign key of the itemid column in the itemlist table which I should do at some point...
-        g_Database.Format(query, sizeof(query), "DELETE FROM cold_prestige_items WHERE itemid=%i;", this.ID);
         g_Database.Query(SQL_DeleteItem, query);
 
         LoadItemList();

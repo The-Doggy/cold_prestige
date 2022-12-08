@@ -283,6 +283,75 @@ void OnWeaponSwitchPost(int client, int weapon)
 	SetEntProp(client, Prop_Send, "m_bDrawViewmodel", true);
 }
 
+public void OnEntityCreated(int entity, const char[] classname)
+{
+	if(StrContains(classname, "npc_grenade_frag", false) != -1)
+	{
+		// Handle grenade models and trails
+		RequestFrame(SetupGrenades, EntIndexToEntRef(entity));
+	}
+}
+
+void SetupGrenades(int grenadeRef)
+{
+	int grenadeEnt = EntRefToEntIndex(grenadeRef);
+	if(grenadeEnt != -1)
+	{
+		// Get grenade thrower
+		int thrower = GetEntPropEnt(grenadeEnt, Prop_Send, "m_hOwnerEntity");
+		if(thrower != -1 && IsClientInGame(thrower))
+		{
+			PClient player = g_Players[thrower];
+			if(player == null || !player.Loaded || g_ItemList.Length == 0)
+			{
+				return;
+			}
+
+			PItem grenadeModel = player.GetEquippedItemOfType(ItemType_GrenadeModel);
+			if(grenadeModel != null)
+			{
+				char model[128];
+				grenadeModel.GetVariable(model, sizeof(model));
+				if(!IsModelPrecached(model))
+				{
+					PrecacheModel(model);
+				}
+				SetEntityModel(grenadeEnt, model);
+				delete grenadeModel;
+			}
+
+			PItem grenadeTrail = player.GetEquippedItemOfType(ItemType_GrenadeTrail);
+			if(grenadeTrail != null)
+			{
+				char color[32];
+				grenadeTrail.GetVariable(color, sizeof(color));
+
+				char splitColors[3][3];
+				ExplodeString(color, " ", splitColors, sizeof(splitColors), sizeof(splitColors[]));
+				int colors[4];
+				colors[0] = StringToInt(splitColors[0]);
+				colors[1] = StringToInt(splitColors[1]);
+				colors[2] = StringToInt(splitColors[2]);
+
+				int child = grenadeEnt;
+				while ((child = GetEntPropEnt(child, Prop_Data, "m_hMoveChild")) != -1)
+				{
+					// do something with child here
+					SetEntityRenderColor(child, colors[0], colors[1], colors[2], 200);
+					
+					int peer = child;
+					while ((peer = GetEntPropEnt(peer, Prop_Data, "m_hMovePeer")) != -1)
+					{
+						// do something with child here
+						SetEntityRenderColor(peer, colors[0], colors[1], colors[2], 255);
+					}
+				}
+				delete grenadeTrail;
+			}
+		}
+	}
+}
+
 public void HexTags_OnTagsUpdated(int client)
 {
 	PClient player = g_Players[client];

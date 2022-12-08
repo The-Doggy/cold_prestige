@@ -27,6 +27,8 @@ enum ItemType
     ItemType_CustomWeapon,
     ItemType_PaintColor,
     ItemType_PaintSize,
+	ItemType_GrenadeModel,
+	ItemType_GrenadeTrail,
     ItemType_Max
 }
 
