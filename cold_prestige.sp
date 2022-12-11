@@ -285,20 +285,43 @@ void OnWeaponSwitchPost(int client, int weapon)
 
 public void OnEntityCreated(int entity, const char[] classname)
 {
-	if(StrContains(classname, "npc_grenade_frag", false) != -1)
+	// Checking for creation of env_spritetrail instead of npc_grenade_frag means that this will be called whenever a grenade
+	// is picked up by a phys gun which recreates the env_sprite and env_spritetrail entities
+	if(StrContains(classname, "env_spritetrail", false) != -1)
 	{
-		// Handle grenade models and trails
-		RequestFrame(SetupGrenades, EntIndexToEntRef(entity));
+		// We need to request frame as some properties aren't assigned on creation
+		RequestFrame(CheckSprite, EntIndexToEntRef(entity));
+	}
+}
+
+void CheckSprite(int trailRef)
+{
+	int trailEnt = EntRefToEntIndex(trailRef);
+	if(trailEnt != -1)
+	{
+		// Get parent of spritetrail ent
+		int parent = GetEntPropEnt(trailEnt, Prop_Data, "m_hMoveParent");
+		if(parent != -1)
+		{
+			char class[64];
+			GetEntityClassname(parent, class, sizeof(class));
+			if(StrContains(class, "npc_grenade_frag", false) != -1)
+			{
+				// Handle grenade models and trails
+				RequestFrame(SetupGrenades, EntIndexToEntRef(parent));
+			}
+		}
 	}
 }
 
 void SetupGrenades(int grenadeRef)
 {
+	// Make sure the grenade reference is still valid
 	int grenadeEnt = EntRefToEntIndex(grenadeRef);
 	if(grenadeEnt != -1)
 	{
 		// Get grenade thrower
-		int thrower = GetEntPropEnt(grenadeEnt, Prop_Send, "m_hOwnerEntity");
+		int thrower = GetEntPropEnt(grenadeEnt, Prop_Send, "m_hThrower");
 		if(thrower != -1 && IsClientInGame(thrower))
 		{
 			PClient player = g_Players[thrower];
@@ -307,6 +330,7 @@ void SetupGrenades(int grenadeRef)
 				return;
 			}
 
+			// Make sure the player actually has a grenade model equipped
 			PItem grenadeModel = player.GetEquippedItemOfType(ItemType_GrenadeModel);
 			if(grenadeModel != null)
 			{
@@ -314,36 +338,47 @@ void SetupGrenades(int grenadeRef)
 				grenadeModel.GetVariable(model, sizeof(model));
 				if(!IsModelPrecached(model))
 				{
-					PrecacheModel(model);
+					PrecacheModel(model); // Precache the model if it isn't already
 				}
 				SetEntityModel(grenadeEnt, model);
 				delete grenadeModel;
 			}
 
+			// Make sure the player actually has a grenade trail equipped
 			PItem grenadeTrail = player.GetEquippedItemOfType(ItemType_GrenadeTrail);
 			if(grenadeTrail != null)
 			{
 				char color[32];
 				grenadeTrail.GetVariable(color, sizeof(color));
 
-				char splitColors[3][3];
-				ExplodeString(color, " ", splitColors, sizeof(splitColors), sizeof(splitColors[]));
 				int colors[4];
-				colors[0] = StringToInt(splitColors[0]);
-				colors[1] = StringToInt(splitColors[1]);
-				colors[2] = StringToInt(splitColors[2]);
+				if(StrEqual(color, "random", false))
+				{
+					colors[0] = GetRandomInt(0, 255);
+					colors[1] = GetRandomInt(0, 255);
+					colors[2] = GetRandomInt(0, 255);
+				}
+				else
+				{
+					// Colours are stored in rgb value so we can split them into separate parts using ExplodeString
+					char splitColors[3][4];
+					ExplodeString(color, " ", splitColors, sizeof(splitColors), sizeof(splitColors[]));
+					colors[0] = StringToInt(splitColors[0]);
+					colors[1] = StringToInt(splitColors[1]);
+					colors[2] = StringToInt(splitColors[2]);
+				}
 
+				// Here we grab the grenade child and it's peer which are the env_sprite and env_spritetrail entities of the
+				// grenade to set their colours
 				int child = grenadeEnt;
 				while ((child = GetEntPropEnt(child, Prop_Data, "m_hMoveChild")) != -1)
 				{
-					// do something with child here
-					SetEntityRenderColor(child, colors[0], colors[1], colors[2], 200);
+					SetEntityRenderColor(child, colors[0], colors[1], colors[2], 200); // The 200 alpha value comes from https://cs.github.com/ValveSoftware/source-sdk-2013/blob/0d8dceea4310fde5706b3ce1c70609d72a38efdf/mp/src/game/server/hl2/grenade_frag.cpp#L166
 					
 					int peer = child;
 					while ((peer = GetEntPropEnt(peer, Prop_Data, "m_hMovePeer")) != -1)
 					{
-						// do something with child here
-						SetEntityRenderColor(peer, colors[0], colors[1], colors[2], 255);
+						SetEntityRenderColor(peer, colors[0], colors[1], colors[2], 255); // The 255 alpha value comes from https://cs.github.com/ValveSoftware/source-sdk-2013/blob/0d8dceea4310fde5706b3ce1c70609d72a38efdf/mp/src/game/server/hl2/grenade_frag.cpp#L178
 					}
 				}
 				delete grenadeTrail;
