@@ -347,3 +347,5 @@ include/MemoryEx/Stocks.inc
 include/MemoryEx/WindowsFunction.inc
 ClientPressedKeyDetour.sp
 cold_menuselect.sp
+combine_no_melee.sp
+ip_activity.sp

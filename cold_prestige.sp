@@ -223,22 +223,30 @@ void SetupSpawn(PClient player)
 		player.SetModel(sModel); // This is kinda redundant but we already use SetEntityModel in that method so no reason to duplicate it here
 	}
 
-	// Loop the players inventory and give them any custom weapons that they have equipped
-	ArrayList inventory = player.Inventory;
-	for(int i = 0; i < inventory.Length; i++)
+	// Because bluerp is hot trash and i don't want this plugin to have any affiliation with it by using it's forwards/natives i've decided 
+	// to set the clients targetname to "cuffed" whenever they are cuffed, this is a very dumb and hacky way of checking whether a player is
+	// cuffed but i really don't care at this point
+	char isCuffed[16];
+	GetEntPropString(player.ClientIndex, Prop_Data, "m_iName", isCuffed, sizeof(isCuffed));
+	if(!StrEqual(isCuffed, "cuffed")) // Ensure player is not cuffed
 	{
-		PItem item = inventory.Get(i);
-		if(item == null)
+		// Loop the players inventory and give them any custom weapons that they have equipped
+		ArrayList inventory = player.Inventory;
+		for(int i = 0; i < inventory.Length; i++)
 		{
-			LogError("Found invalid item in player %N's inventory at index %i", player.ClientIndex, i);
-			continue;
-		}
+			PItem item = inventory.Get(i);
+			if(item == null)
+			{
+				LogError("Found invalid item in player %N's inventory at index %i", player.ClientIndex, i);
+				continue;
+			}
 
-		char sWeaponClass[64];
-		if(item.Type == ItemType_CustomWeapon && item.Equipped)
-		{
-			item.GetVariable(sWeaponClass, sizeof(sWeaponClass));
-			CG_GiveGun(player.ClientIndex, sWeaponClass);
+			char sWeaponClass[64];
+			if(item.Type == ItemType_CustomWeapon && item.Equipped)
+			{
+				item.GetVariable(sWeaponClass, sizeof(sWeaponClass));
+				CG_GiveGun(player.ClientIndex, sWeaponClass);
+			}
 		}
 	}
 }
@@ -294,6 +302,7 @@ public void OnEntityCreated(int entity, const char[] classname)
 	}
 }
 
+// This only exists to ensure that the env_spritetrail that was created is actually a child of a grenade entity
 void CheckSprite(int trailRef)
 {
 	int trailEnt = EntRefToEntIndex(trailRef);
