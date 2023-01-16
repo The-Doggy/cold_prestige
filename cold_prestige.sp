@@ -45,6 +45,7 @@ bool g_bConfirmReset[MAXPLAYERS + 1];
 #include "prestige/menus.sp"
 #include "prestige/commands.sp"
 #include "prestige/ecoreset.sp"
+#include "prestige/weapons.sp"
 
 #if defined DEBUG
 #include "prestige/debug.sp"
@@ -101,20 +102,8 @@ public void OnMapStart()
 	PrecacheSound("vo/citadel/al_success_yes02_nr.wav"); // Success
 	PrecacheSound("hl1/fvox/boop.wav"); // Item sold, I don't really like this sound, should find something better later
 
-	// All of this is currently for setting up paint sprites for weapon_paintgun
-	char buffer[PLATFORM_MAX_PATH];
-	char spriteKey[64];
-	
-	AddFileToDownloadsTable( "materials/decals/paint/paint_decal.vtf" );
-	for( int colour = 0; colour < sizeof( g_cPaintColours ); colour++ )
-	{
-		for( int size = 0; size < sizeof( g_cPaintSizes ); size++ )
-		{
-			Format( buffer, sizeof( buffer ), "decals/paint/%s%s.vmt", g_cPaintColours[colour][1], g_cPaintSizes[size][1] );
-			Format(spriteKey, sizeof(spriteKey), "%s%s", g_cPaintColours[colour][1], g_cPaintSizes[size][1]);
-			g_PaintSprites.SetValue(spriteKey, PrecachePaint(buffer));
-		}
-	}
+	// Precaches and adds all the needed assets for custom weapons to the downloads table
+	SetupPaintgunAssets();
 }
 
 public void OnClientPutInServer(int client)

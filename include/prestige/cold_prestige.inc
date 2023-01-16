@@ -48,3 +48,27 @@ stock bool IsValidClient(int client)
 	client <= MaxClients && 
 	IsClientInGame(client);
 }
+
+stock void TE_SetupWorldDecal( const float vecOrigin[3], int index )
+{    
+    TE_Start( "World Decal" );
+    TE_WriteVector( "m_vecOrigin", vecOrigin );
+    TE_WriteNum( "m_nIndex", index );
+}
+
+stock void TraceEye( int client, float pos[3] )
+{
+	float vAngles[3], vOrigin[3];
+	GetClientEyePosition( client, vOrigin );
+	GetClientEyeAngles( client, vAngles );
+	
+	TR_TraceRayFilter( vOrigin, vAngles, MASK_SHOT, RayType_Infinite, TraceEntityFilterPlayer );
+	
+	if( TR_DidHit() )
+		TR_GetEndPosition( pos );
+}
+
+bool TraceEntityFilterPlayer( int entity, int contentsMask )
+{
+	return ( entity > MaxClients || !entity );
+}

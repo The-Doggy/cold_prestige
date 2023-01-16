@@ -34,73 +34,86 @@ char g_cPaintSizes[][][64] = // Modify this to add more sizes
 
 StringMap g_PaintSprites;
 
-public void CG_OnPrimaryAttack(int client, int weapon){
-	char sWeapon[32];
-	GetEntityClassname(weapon, sWeapon, sizeof(sWeapon));
+void SetupPaintgunAssets()
+{
+	char buffer[PLATFORM_MAX_PATH];
+	char spriteKey[64];
 	
-	if(StrEqual(sWeapon, "weapon_paintgun")){			
-		// Make sure player firing weapon has a valid PClient instance
-		PClient player = GetPlayerPClient(client);
-		if(player == null || !player.Loaded) return;
-
-		// Make sure that the player has bought and equipped both a paint color and paint size
-		PItem colorItem = player.GetEquippedItemOfType(ItemType_PaintColor);
-		PItem sizeItem = player.GetEquippedItemOfType(ItemType_PaintSize);
-		if(colorItem == null || sizeItem == null)
+	AddFileToDownloadsTable( "materials/decals/paint/paint_decal.vtf" );
+	for( int colour = 0; colour < sizeof( g_cPaintColours ); colour++ )
+	{
+		for( int size = 0; size < sizeof( g_cPaintSizes ); size++ )
 		{
-			player.Chat("%s You need to buy/equip a %s before you can use your paintgun!", CMDTAG, colorItem == null ? "paint color" : "paint size");
-			return;
+			Format( buffer, sizeof( buffer ), "decals/paint/%s%s.vmt", g_cPaintColours[colour][1], g_cPaintSizes[size][1] );
+			Format(spriteKey, sizeof(spriteKey), "%s%s", g_cPaintColours[colour][1], g_cPaintSizes[size][1]);
+			g_PaintSprites.SetValue(spriteKey, PrecachePaint(buffer));
 		}
-
-		// Get the color and size from the item variables
-		int paintSprite;
-		char sColor[32], sSize[32];
-		colorItem.GetVariable(sColor, sizeof(sColor));
-		sizeItem.GetVariable(sSize, sizeof(sSize));
-
-		// We need to delete the items now since GetEquippedItemOfType returns a clone of the item
-		delete colorItem;
-		delete sizeItem;
-
-		// If the color is random we get a random sprite from the g_PaintSprites stringmap
-		if(StrEqual(sColor, "random", false))
-		{
-			StringMapSnapshot snapshot = g_PaintSprites.Snapshot();
-
-			int randomSpriteIndex = GetRandomInt(0, snapshot.Length - 1);
-			int size = snapshot.KeyBufferSize(randomSpriteIndex);
-			char[] randomSpriteKey = new char[size];
-			snapshot.GetKey(randomSpriteIndex, randomSpriteKey, size);
-
-			delete snapshot;
-
-			if(!g_PaintSprites.GetValue(randomSpriteKey, paintSprite))
-			{
-				ThrowError("Failed to get random paint sprite at key %s from g_PaintSprites stringmap", randomSpriteKey);
-			}
-		}
-		// Otherwise we combine the color and size variables together to get the key for the correct sprite
-		else
-		{
-			char sKey[64];
-			Format(sKey, sizeof(sKey), "%s%s", sColor, sSize);
-			if(!g_PaintSprites.GetValue(sKey, paintSprite))
-			{
-				ThrowError("Failed to get paint sprite at key %s from g_PaintSprites stringmap", sKey);
-			}
-		}
-
-		CG_SetPlayerAnimation(client, PLAYER_ATTACK1);
-		CG_PlayPrimaryAttack(weapon);
-		EmitGameSoundToAll("Weapon_Paintgun.Single", weapon);
-		CG_Cooldown(weapon, 0.2);
-
-		static float pos[3];
-		TraceEye( client, pos );
-
-		// Paint the sprite
-		AddPaint( pos, paintSprite );
 	}
+}
+
+void FirePaintgun(int client, int weapon)
+{
+	// Make sure player firing weapon has a valid PClient instance
+	PClient player = GetPlayerPClient(client);
+	if(player == null || !player.Loaded) return;
+
+	// Make sure that the player has bought and equipped both a paint color and paint size
+	PItem colorItem = player.GetEquippedItemOfType(ItemType_PaintColor);
+	PItem sizeItem = player.GetEquippedItemOfType(ItemType_PaintSize);
+	if(colorItem == null || sizeItem == null)
+	{
+		player.Chat("%s You need to buy/equip a %s before you can use your paintgun!", CMDTAG, colorItem == null ? "paint color" : "paint size");
+		return;
+	}
+
+	// Get the color and size from the item variables
+	int paintSprite;
+	char sColor[32], sSize[32];
+	colorItem.GetVariable(sColor, sizeof(sColor));
+	sizeItem.GetVariable(sSize, sizeof(sSize));
+
+	// We need to delete the items now since GetEquippedItemOfType returns a clone of the item
+	delete colorItem;
+	delete sizeItem;
+
+	// If the color is random we get a random sprite from the g_PaintSprites stringmap
+	if(StrEqual(sColor, "random", false))
+	{
+		StringMapSnapshot snapshot = g_PaintSprites.Snapshot();
+
+		int randomSpriteIndex = GetRandomInt(0, snapshot.Length - 1);
+		int size = snapshot.KeyBufferSize(randomSpriteIndex);
+		char[] randomSpriteKey = new char[size];
+		snapshot.GetKey(randomSpriteIndex, randomSpriteKey, size);
+
+		delete snapshot;
+
+		if(!g_PaintSprites.GetValue(randomSpriteKey, paintSprite))
+		{
+			ThrowError("Failed to get random paint sprite at key %s from g_PaintSprites stringmap", randomSpriteKey);
+		}
+	}
+	// Otherwise we combine the color and size variables together to get the key for the correct sprite
+	else
+	{
+		char sKey[64];
+		Format(sKey, sizeof(sKey), "%s%s", sColor, sSize);
+		if(!g_PaintSprites.GetValue(sKey, paintSprite))
+		{
+			ThrowError("Failed to get paint sprite at key %s from g_PaintSprites stringmap", sKey);
+		}
+	}
+
+	CG_SetPlayerAnimation(client, PLAYER_ATTACK1);
+	CG_PlayPrimaryAttack(weapon);
+	EmitGameSoundToAll("Weapon_Paintgun.Single", weapon);
+	CG_Cooldown(weapon, 0.2);
+
+	static float pos[3];
+	TraceEye( client, pos );
+
+	// Paint the sprite
+	AddPaint( pos, paintSprite );
 }
 
 void AddPaint( float pos[3], int sprite )
@@ -116,28 +129,4 @@ int PrecachePaint( char[] filename )
 	AddFileToDownloadsTable( tmpPath );
 	
 	return PrecacheDecal( filename, true );
-}
-
-stock void TE_SetupWorldDecal( const float vecOrigin[3], int index )
-{    
-    TE_Start( "World Decal" );
-    TE_WriteVector( "m_vecOrigin", vecOrigin );
-    TE_WriteNum( "m_nIndex", index );
-}
-
-stock void TraceEye( int client, float pos[3] )
-{
-	float vAngles[3], vOrigin[3];
-	GetClientEyePosition( client, vOrigin );
-	GetClientEyeAngles( client, vAngles );
-	
-	TR_TraceRayFilter( vOrigin, vAngles, MASK_SHOT, RayType_Infinite, TraceEntityFilterPlayer );
-	
-	if( TR_DidHit() )
-		TR_GetEndPosition( pos );
-}
-
-public bool TraceEntityFilterPlayer( int entity, int contentsMask )
-{
-	return ( entity > MaxClients || !entity );
 }
