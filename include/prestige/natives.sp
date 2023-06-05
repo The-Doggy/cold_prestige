@@ -10,6 +10,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("GetItemFromVariable", Native_GetItemFromVariable);
 	CreateNative("GetPlayerPClient", Native_GetPlayer);
 
+	g_ForwardOnPlayerLoaded = CreateGlobalForward("Prestige_OnPlayerLoaded", ET_Ignore, Param_Cell);
+
 	g_bLate = late;
 	return APLRes_Success;
 }

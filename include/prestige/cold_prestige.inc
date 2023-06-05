@@ -42,6 +42,9 @@ native PItem GetItemFromVariable(const char[] variable);
 
 native PClient GetPlayerPClient(int client);
 
+// Use GetPlayerPClient to get the client's PClient inside this forward
+forward void Prestige_OnPlayerLoaded(int client);
+
 stock bool IsValidClient(int client)
 {
 	return client >= 1 && 

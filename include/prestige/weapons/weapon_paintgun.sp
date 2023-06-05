@@ -1,7 +1,4 @@
 // Thanks to hmmmmm for making their paint plugin (https://forums.alliedmods.net/showthread.php?p=2541664) which most of this was stripped from and ported to work with customguns and prestige
-#include <customguns>
-#include <sdktools>
-
 #define PAINT_DISTANCE_SQ	1.0
 
 /* COLOURS! */

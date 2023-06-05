@@ -29,6 +29,7 @@ ArrayStack g_LoadQueue;
 StringMap g_smTotalValue;
 ArrayList g_ItemList;
 static ArrayList excludedWeapons; // Used to exclude custom weapons that don't have a corresponding item in the itemlist
+GlobalForward g_ForwardOnPlayerLoaded;
 
 // These need to be here otherwise we get tag mismatches >:(
 #include <prestige/PItem>
@@ -119,6 +120,16 @@ public void OnClientPutInServer(int client)
 	}
 
 	SDKHook(client, SDKHook_WeaponSwitchPost, OnWeaponSwitchPost);
+}
+
+void OnPlayerLoaded(PClient player)
+{
+	player.Loaded = true;
+	player.Chat("%s Welcome back, you have {green}%i{default} prestige points.\n%s NB: Prestige store is currently in beta, if you encounter any bugs please report them to a developer. Thank you for your patience.", CMDTAG, player.Prestige, CMDTAG);
+
+	Call_StartForward(g_ForwardOnPlayerLoaded);
+	Call_PushCell(player.ClientIndex);
+	Call_Finish();
 }
 
 public void OnClientPostAdminCheck(int client)
