@@ -157,6 +157,12 @@ public any Native_GetItemFromVariable(Handle plugin, int numParams)
 		}
 	}
 
+	// We didn't find any matching items in the itemlist
+	if(item == null)
+	{
+		return view_as<PItem>(null);
+	}
+
 	// We clone the item here as we never want to be using items directly from the itemlist as they will become invalid whenever the itemlist is reloaded
 	return item.Clone();
 }
