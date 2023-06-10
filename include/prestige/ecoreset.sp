@@ -1,6 +1,7 @@
 /* This file contains all of the economy reset related code */
 
 #define HOURVALUE 10000 // Calculation = (minutes / 60) * HOURVALUE
+#define CURRENT_PRESTIGE PRESTIGE_RANK1 // The current prestige rank that players will be given upon reset
 
 Action Command_EcoReset(int client, int args)
 {
@@ -53,7 +54,7 @@ Action Command_EcoReset(int client, int args)
 	playerDataTxn.AddQuery(sQuery);
 
 	// Item value
-	g_Database.Format(sQuery, sizeof(sQuery), "SELECT bluerp_players.steam_id, (bluerp_items.quantity * bluerp_itemlist.price) as itemValue FROM bluerp_players JOIN bluerp_items USING (steam_id) JOIN bluerp_itemlist ON bluerp_items.itemid = bluerp_itemlist.itemID WHERE bluerp_items.itemid NOT IN (195, 196, 197, 198, 250, 254, 261, 262, 263, 264, 265, 279);");
+	g_Database.Format(sQuery, sizeof(sQuery), "SELECT bluerp_players.steam_id, (bluerp_items.quantity * bluerp_itemlist.price) as itemValue FROM bluerp_players JOIN bluerp_items USING (steam_id) JOIN bluerp_itemlist ON bluerp_items.itemid = bluerp_itemlist.itemID WHERE bluerp_items.itemid NOT IN (195, 196, 197, 198, 250);");
 	playerDataTxn.AddQuery(sQuery);
 
 	// Time value
@@ -141,7 +142,7 @@ void SetPrestige()
 		int accountId = GetAccountIdFromSteam2(sSteam);
 
 		// Update prestige
-		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO cold_prestige (steamid, prestige) VALUES (CAST(%i + CAST('76561197960265728' AS UNSIGNED) AS CHAR), %i) ON DUPLICATE KEY UPDATE prestige = prestige + %i;", accountId, prestigeValue, prestigeValue); // This is extremely scuffed but is one of the only ways to convert to community id :')
+		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO cold_prestige (steamid, prestige, rank) VALUES (CAST(%i + CAST('76561197960265728' AS UNSIGNED) AS CHAR), %i, %i) ON DUPLICATE KEY UPDATE prestige = prestige + %i;", accountId, prestigeValue, CURRENT_PRESTIGE, prestigeValue); // This is extremely scuffed but is one of the only ways to convert to community id :')
 		prestigeTxn.AddQuery(sQuery);
 	}
 

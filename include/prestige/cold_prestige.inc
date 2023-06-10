@@ -18,6 +18,10 @@ public SharedPlugin __pl_prestige =
 #define CMDTAG			"{dodgerblue}[CoLD Prestige]{default}"
 #define CONSOLETAG 		"[CoLD Prestige]"
 
+// Prestige rank tiers
+#define PRESTIGE_RANK1	(1 << 0)
+#define PRESTIGE_RANK2	(1 << 1)
+
 enum ItemType
 {
     ItemType_CustomTag = 1,
