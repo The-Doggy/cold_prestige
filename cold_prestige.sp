@@ -104,7 +104,7 @@ public void OnMapStart()
 	PrecacheSound("hl1/fvox/boop.wav"); // Item sold, I don't really like this sound, should find something better later
 
 	// Precaches and adds all the needed assets for custom weapons to the downloads table
-	SetupPaintgunAssets();
+	SetupWeaponAssets();
 }
 
 public void OnClientPutInServer(int client)

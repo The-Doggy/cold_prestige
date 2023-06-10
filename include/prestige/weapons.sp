@@ -11,3 +11,9 @@ public void CG_OnPrimaryAttack(int client, int weapon)
 		FirePaintgun(client, weapon);
 	}
 }
+
+void SetupWeaponAssets()
+{
+	// Paintgun
+	SetupPaintgunAssets();
+}
