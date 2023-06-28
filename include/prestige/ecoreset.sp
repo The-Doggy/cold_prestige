@@ -142,7 +142,7 @@ void SetPrestige()
 		int accountId = GetAccountIdFromSteam2(sSteam);
 
 		// Update prestige
-		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO cold_prestige (steamid, prestige, rank) VALUES (CAST(%i + CAST('76561197960265728' AS UNSIGNED) AS CHAR), %i, %i) ON DUPLICATE KEY UPDATE prestige = prestige + %i;", accountId, prestigeValue, CURRENT_PRESTIGE, prestigeValue); // This is extremely scuffed but is one of the only ways to convert to community id :')
+		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO cold_prestige (steamid, prestige, rank) VALUES (CAST(%i + CAST('76561197960265728' AS UNSIGNED) AS CHAR), %i, %i) ON DUPLICATE KEY UPDATE prestige = prestige + %i, rank = rank + %i;", accountId, prestigeValue, CURRENT_PRESTIGE, prestigeValue, CURRENT_PRESTIGE); // This is extremely scuffed but is one of the only ways to convert to community id :')
 		prestigeTxn.AddQuery(sQuery);
 	}
 
