@@ -570,6 +570,16 @@ methodmap PClient < StringMap
         	{
 
         	}
+
+			case ItemType_PrinterColor:
+			{
+
+			}
+
+			case ItemType_PlantColor:
+			{
+				
+			}
         }
 
         this.SaveItem(item);

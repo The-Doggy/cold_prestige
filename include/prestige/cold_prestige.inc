@@ -33,7 +33,9 @@ enum ItemType
     ItemType_PaintSize,
 	ItemType_GrenadeModel,
 	ItemType_GrenadeTrail,
-    ItemType_Max
+	ItemType_PrinterColor,
+	ItemType_PlantColor,
+	ItemType_Max
 }
 
 native PItem GetItemFromID(int id);

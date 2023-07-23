@@ -108,7 +108,7 @@ methodmap PItem < StringMap
     public void GetTypeString(char[] buffer, int maxlen)
     {
     	Format(buffer, maxlen, "%s", this.Type == ItemType_NameColor ? " name color" : this.Type == ItemType_ChatColor ? " chat color" : this.Type == ItemType_Model ? " model" : this.Type == ItemType_PaintColor ? " paint color" : this.Type == ItemType_PaintSize ? " paint size" : 
-        this.Type == ItemType_GrenadeModel ? " grenade model" : this.Type == ItemType_GrenadeTrail ? " grenade trail" : "");
+        this.Type == ItemType_GrenadeModel ? " grenade model" : this.Type == ItemType_GrenadeTrail ? " grenade trail" : this.Type == ItemType_PrinterColor ? " printer color" : this.Type == ItemType_PlantColor ? " plant color" : "");
     }
 
     public void Save()

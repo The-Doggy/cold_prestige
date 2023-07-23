@@ -124,7 +124,7 @@ Action Command_CreateItem(int client, int args)
 	{
 		CReplyToCommand(client, "%s Invalid Syntax. Usage: sm_createstoreitem <name> <type> <price> <variable>", CMDTAG);
 		CReplyToCommand(client, "%s Valid types are: 1 = ItemType_CustomTag, 2 = ItemType_NameColor, 3 = ItemType_ChatColor, 4 = ItemType_Model, 5 = ItemType_CustomWeapon, 6 = ItemType_PaintColor, 7 = ItemType_PaintSize, 8 = ItemType_GrenadeModel, " ...
-		"9 = ItemType_GrenadeTrail", CMDTAG);
+		"9 = ItemType_GrenadeTrail, 10 = ItemType_PrinterColor, 11 = ItemType_PlantColor", CMDTAG);
 		return Plugin_Handled;
 	}
 
@@ -140,7 +140,7 @@ Action Command_CreateItem(int client, int args)
 	if(iType < ItemType_CustomTag || iType >= ItemType_Max)
 	{
 		CReplyToCommand(client, "%s Invalid type. Valid types are: 1 = ItemType_CustomTag, 2 = ItemType_NameColor, 3 = ItemType_ChatColor, 4 = ItemType_Model, 5 = ItemType_CustomWeapon, 6 = ItemType_PaintColor, 7 = ItemType_PaintSize, 8 = ItemType_GrenadeModel, " ...
-		"9 = ItemType_GrenadeTrail", CMDTAG);
+		"9 = ItemType_GrenadeTrail, 10 = ItemType_PrinterColor, 11 = ItemType_PlantColor", CMDTAG);
 		return Plugin_Handled;
 	}
 

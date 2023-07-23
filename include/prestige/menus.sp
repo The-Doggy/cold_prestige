@@ -90,6 +90,10 @@ void ShowStoreCategoriesMenu(int client)
 		categoryMenu.AddItem("8", "[Grenade Models]");
 	if(itemTypes.FindValue(ItemType_GrenadeTrail) != -1)
 		categoryMenu.AddItem("9", "[Grenade Trails]");
+	if(itemTypes.FindValue(ItemType_PrinterColor) != -1)
+		categoryMenu.AddItem("10", "[Printer Colors]");
+	if(itemTypes.FindValue(ItemType_PlantColor) != -1)
+		categoryMenu.AddItem("11", "[Plant Colors]");
 
 	delete itemTypes;
 	categoryMenu.Display(client, MENU_TIME_FOREVER);
@@ -148,6 +152,10 @@ void ShowInventoryMenu(int client)
 		inventoryMenu.AddItem("8", "[Grenade Models]");
 	if(itemTypes.FindValue(ItemType_GrenadeTrail) != -1)
 		inventoryMenu.AddItem("9", "[Grenade Trails]");
+	if(itemTypes.FindValue(ItemType_PrinterColor) != -1)
+		inventoryMenu.AddItem("10", "[Printer Colors]");
+	if(itemTypes.FindValue(ItemType_PlantColor) != -1)
+		inventoryMenu.AddItem("11", "[Plant Colors]");
 
 	delete itemTypes;
 	inventoryMenu.Display(client, MENU_TIME_FOREVER);
