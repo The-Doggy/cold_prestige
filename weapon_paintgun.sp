@@ -1,4 +1,13 @@
 // Thanks to hmmmmm for making their paint plugin (https://forums.alliedmods.net/showthread.php?p=2541664) which most of this was stripped from and ported to work with customguns and prestige
+#include <sourcemod>
+#include <morecolors>
+#include <sdktools>
+#include <hextags>
+#include <customguns>
+
+#include <prestige>
+#include <prestige/cold_prestige>
+
 #define PAINT_DISTANCE_SQ	1.0
 
 /* COLOURS! */
@@ -31,6 +40,11 @@ char g_cPaintSizes[][][64] = // Modify this to add more sizes
 
 StringMap g_PaintSprites;
 
+public void OnMapStart()
+{
+	SetupPaintgunAssets();
+}
+
 void SetupPaintgunAssets()
 {
 	char buffer[PLATFORM_MAX_PATH];
@@ -45,6 +59,17 @@ void SetupPaintgunAssets()
 			Format(spriteKey, sizeof(spriteKey), "%s%s", g_cPaintColours[colour][1], g_cPaintSizes[size][1]);
 			g_PaintSprites.SetValue(spriteKey, PrecachePaint(buffer));
 		}
+	}
+}
+
+public void CG_OnPrimaryAttack(int client, int weapon)
+{
+	char sWeapon[32];
+	GetEntityClassname(weapon, sWeapon, sizeof(sWeapon));
+	
+	if(StrEqual(sWeapon, "weapon_paintgun"))
+	{			
+		FirePaintgun(client, weapon);
 	}
 }
 

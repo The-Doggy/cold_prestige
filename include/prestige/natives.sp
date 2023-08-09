@@ -9,6 +9,9 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("GetItemsOfType", Native_GetItemsOfType);
 	CreateNative("GetItemFromVariable", Native_GetItemFromVariable);
 	CreateNative("GetPlayerPClient", Native_GetPlayer);
+	CreateNative("RequestDatabaseConnection", Native_RequestDatabaseConnection);
+	CreateNative("ReloadItemlist", Native_ReloadItemlist);
+	CreateNative("AddToLateQueue", Native_AddToLateQueue);
 
 	g_ForwardOnPlayerLoaded = CreateGlobalForward("Prestige_OnPlayerLoaded", ET_Ignore, Param_Cell);
 
@@ -177,4 +180,28 @@ public any Native_GetPlayer(Handle plugin, int numParams)
 	}
 
 	return g_Players[client];
+}
+
+public any Native_RequestDatabaseConnection(Handle plugin, int numParams)
+{
+	return g_Database == null ? view_as<Handle>(null) : CloneHandle(g_Database, plugin);
+}
+
+public any Native_ReloadItemlist(Handle plugin, int numParams)
+{
+	LoadItemList();
+}
+
+public any Native_AddToLateQueue(Handle plugin, int numParams)
+{
+	int userid = GetNativeCell(1);
+	int client = GetClientOfUserId(userid);
+	if(!client)
+	{
+		LogError("AddToLateQueue failed. Received invalid userid %i.", userid);
+		return false;
+	}
+
+	RequestFrame(AddToQueue, userid);
+	return true;
 }

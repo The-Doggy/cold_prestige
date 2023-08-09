@@ -113,7 +113,8 @@ methodmap PItem < StringMap
 
     public void Save()
     {
-        if(g_Database == null)
+        Database db = RequestDatabaseConnection();
+        if(db == null)
         {
             LogError("Failed to save item data to itemlist, database is null");
             return;
@@ -124,23 +125,24 @@ methodmap PItem < StringMap
         this.GetVariable(variable, sizeof(variable));
         
         char query[512];
-        g_Database.Format(query, sizeof(query), "INSERT INTO cold_prestige_itemlist (itemid, type, name, price, variable) VALUES (%i, %i, '%s', %i, '%s') ON DUPLICATE KEY UPDATE type=%i, name='%s', price=%i, variable='%s';", this.ID, this.Type, name, this.Price, variable, this.Type, name, this.Price, variable);
-        g_Database.Query(SQL_SaveItem, query);
+        db.Format(query, sizeof(query), "INSERT INTO cold_prestige_itemlist (itemid, type, name, price, variable) VALUES (%i, %i, '%s', %i, '%s') ON DUPLICATE KEY UPDATE type=%i, name='%s', price=%i, variable='%s';", this.ID, this.Type, name, this.Price, variable, this.Type, name, this.Price, variable);
+        db.Query(SQL_SaveItem, query);
     }
 
     public void Delete()
     {
-        if(g_Database == null)
+        Database db = RequestDatabaseConnection();
+        if(db == null)
         {
             LogError("Failed to delete item from itemlist, database is null");
             return;
         }
 
         char query[512];
-        g_Database.Format(query, sizeof(query), "DELETE FROM cold_prestige_itemlist WHERE itemid=%i;", this.ID);
-        g_Database.Query(SQL_DeleteItem, query);
+        db.Format(query, sizeof(query), "DELETE FROM cold_prestige_itemlist WHERE itemid=%i;", this.ID);
+        db.Query(SQL_DeleteItem, query);
 
-        LoadItemList();
+        ReloadItemlist();
     }
 
     public PItem Clone()
@@ -176,7 +178,7 @@ public void SQL_SaveItem(Database db, DBResultSet results, const char[] sError, 
         return;
     }
 
-    LoadItemList();
+    ReloadItemlist();
 }
 
 public void SQL_DeleteItem(Database db, DBResultSet results, const char[] sError, any data)
@@ -187,5 +189,5 @@ public void SQL_DeleteItem(Database db, DBResultSet results, const char[] sError
         return;
     }
 
-    LoadItemList();
+    ReloadItemlist();
 }

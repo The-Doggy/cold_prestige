@@ -48,7 +48,8 @@ methodmap PClient < StringMap
 	// I hate that this has to be all the way up here to actually be recognized by other class functions AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 	public void SaveField(const char[] field, int value)
 	{
-		if(g_Database == null)
+		Database db = RequestDatabaseConnection();
+		if(db == null)
 		{
 			char sSteam[32];
 			this.GetSteamID(sSteam, sizeof(sSteam));
@@ -58,8 +59,8 @@ methodmap PClient < StringMap
 
 		char sQuery[256], sSteam[32];
 		this.GetSteamID(sSteam, sizeof(sSteam));
-		g_Database.Format(sQuery, sizeof(sQuery), "UPDATE cold_prestige SET %s = %i WHERE steamid = '%s';", field, value, sSteam);
-		g_Database.Query(SQL_GenericQuery, sQuery);
+		db.Format(sQuery, sizeof(sQuery), "UPDATE cold_prestige SET %s = %i WHERE steamid = '%s';", field, value, sSteam);
+		db.Query(SQL_GenericQuery, sQuery);
 	}
 
 	property int Prestige
@@ -124,7 +125,8 @@ methodmap PClient < StringMap
 
 	public void SaveFieldString(const char[] field, const char[] value)
 	{
-		if(g_Database == null)
+		Database db = RequestDatabaseConnection();
+		if(db == null)
 		{
 			char sSteam[32];
 			this.GetSteamID(sSteam, sizeof(sSteam));
@@ -134,8 +136,8 @@ methodmap PClient < StringMap
 
 		char sQuery[256], sSteam[32];
 		this.GetSteamID(sSteam, sizeof(sSteam));
-		g_Database.Format(sQuery, sizeof(sQuery), "UPDATE cold_prestige SET %s = '%s' WHERE steamid = '%s';", field, value, sSteam);
-		g_Database.Query(SQL_GenericQuery, sQuery);
+		db.Format(sQuery, sizeof(sQuery), "UPDATE cold_prestige SET %s = '%s' WHERE steamid = '%s';", field, value, sSteam);
+		db.Query(SQL_GenericQuery, sQuery);
 	}
 
 	public PItem GetInventoryItem(int id)
@@ -260,23 +262,25 @@ methodmap PClient < StringMap
 
 	public void Load()
 	{
-		if(g_Database == null)
+		Database db = RequestDatabaseConnection();
+		if(db == null)
 		{
 			LogError("Database was null while trying to load player %N's data, adding player to late load queue", this.ClientIndex);
-			RequestFrame(AddToQueue, this.UserID);
+			AddToLateQueue(this.UserID);
 			return;
 		}
 
 		char sQuery[1024], sSteam[32];
 		this.GetSteamID(sSteam, sizeof(sSteam));
 
-		g_Database.Format(sQuery, sizeof(sQuery), "SELECT * FROM cold_prestige WHERE steamid = '%s';", sSteam);
-		g_Database.Query(SQL_LoadPlayerPrestige, sQuery, this);
+		db.Format(sQuery, sizeof(sQuery), "SELECT * FROM cold_prestige WHERE steamid = '%s';", sSteam);
+		db.Query(SQL_LoadPlayerPrestige, sQuery, this);
 	}
 
 	public void Save()
 	{
-		if(g_Database == null)
+		Database db = RequestDatabaseConnection();
+		if(db == null)
 		{
 			char sItems[512], sSteam[32];
 			this.GetInventoryItems(sItems, sizeof(sItems));
@@ -292,7 +296,7 @@ methodmap PClient < StringMap
 		this.GetChatColor(sChatColor, sizeof(sChatColor));
 		this.GetModel(sModel, sizeof(sModel));
 		this.GetSteamID(sSteam, sizeof(sSteam));
-		g_Database.Format(sQuery, sizeof(sQuery), "INSERT IGNORE INTO cold_prestige (prestige, custom_tag, name_color, chat_color, model, steamid) VALUES (%i, '%s', '%s', '%s', '%s', '%s') ON DUPLICATE KEY UPDATE prestige = %i, custom_tag = '%s', name_color = '%s', chat_color = '%s', model = '%s';", 
+		db.Format(sQuery, sizeof(sQuery), "INSERT IGNORE INTO cold_prestige (prestige, custom_tag, name_color, chat_color, model, steamid) VALUES (%i, '%s', '%s', '%s', '%s', '%s') ON DUPLICATE KEY UPDATE prestige = %i, custom_tag = '%s', name_color = '%s', chat_color = '%s', model = '%s';", 
 													this.Prestige, sTag, sNameColor, sChatColor, sModel, sSteam, this.Prestige, sTag, sNameColor, sChatColor, sModel, sSteam);
 		txnSaveData.AddQuery(sQuery);
 
@@ -305,10 +309,10 @@ methodmap PClient < StringMap
 				continue;
 			}
 
-			g_Database.Format(sQuery, sizeof(sQuery), "INSERT IGNORE INTO cold_prestige_items (steamid, itemid, equipped) VALUES ('%s', %i, %i) ON DUPLICATE KEY UPDATE equipped = %i;", sSteam, item.ID, item.Equipped, item.Equipped);
+			db.Format(sQuery, sizeof(sQuery), "INSERT IGNORE INTO cold_prestige_items (steamid, itemid, equipped) VALUES ('%s', %i, %i) ON DUPLICATE KEY UPDATE equipped = %i;", sSteam, item.ID, item.Equipped, item.Equipped);
 			txnSaveData.AddQuery(sQuery);
 		}
-		g_Database.Execute(txnSaveData, _, SQL_ItemSaveFailure, this);
+		db.Execute(txnSaveData, _, SQL_ItemSaveFailure, this);
 	}
 
 	public void Kill()
@@ -342,6 +346,13 @@ methodmap PClient < StringMap
 
 	public void SaveItem(PItem item)
 	{
+		Database db = RequestDatabaseConnection();
+		if(db == null)
+		{
+			LogError("SaveItem - Database is null, not saving item");
+			return;
+		}
+
 		if(item == null)
 		{
 			LogError("SaveItem - Invalid item passed to function, not saving item");
@@ -350,12 +361,19 @@ methodmap PClient < StringMap
 
 		char sQuery[512], sSteam[32];
 		this.GetSteamID(sSteam, sizeof(sSteam));
-		g_Database.Format(sQuery, sizeof(sQuery), "INSERT IGNORE INTO cold_prestige_items (steamid, itemid, equipped) VALUES ('%s', %i, %i) ON DUPLICATE KEY UPDATE equipped = %i;", sSteam, item.ID, item.Equipped, item.Equipped);
-		g_Database.Query(SQL_GenericQuery, sQuery, this);
+		db.Format(sQuery, sizeof(sQuery), "INSERT IGNORE INTO cold_prestige_items (steamid, itemid, equipped) VALUES ('%s', %i, %i) ON DUPLICATE KEY UPDATE equipped = %i;", sSteam, item.ID, item.Equipped, item.Equipped);
+		db.Query(SQL_GenericQuery, sQuery, this);
 	}
 
 	public void DeleteItem(PItem item)
 	{
+		Database db = RequestDatabaseConnection();
+		if(db == null)
+		{
+			LogError("DeleteItem - Database is null, not deleting item");
+			return;
+		}
+
 		if(item == null)
 		{
 			LogError("DeleteItem - Invalid item passed to function, not deleting item");
@@ -364,8 +382,8 @@ methodmap PClient < StringMap
 
 		char sQuery[512], sSteam[32];
 		this.GetSteamID(sSteam, sizeof(sSteam));
-		g_Database.Format(sQuery, sizeof(sQuery), "DELETE FROM cold_prestige_items WHERE itemid = %i AND steamid = '%s';", item.ID, sSteam);
-		g_Database.Query(SQL_GenericQuery, sQuery, this);
+		db.Format(sQuery, sizeof(sQuery), "DELETE FROM cold_prestige_items WHERE itemid = %i AND steamid = '%s';", item.ID, sSteam);
+		db.Query(SQL_GenericQuery, sQuery, this);
 	}
 
 	public void AddInventoryItem(PItem item)
@@ -670,8 +688,8 @@ void SQL_LoadPlayerPrestige(Database db, DBResultSet results, const char[] error
 	char sSteam[32]; results.FetchString(steamCol, sSteam, sizeof(sSteam));
 
 	char sQuery[128];
-	g_Database.Format(sQuery, sizeof(sQuery), "SELECT * FROM cold_prestige_items WHERE steamid = '%s';", sSteam);
-	g_Database.Query(SQL_LoadPlayerItems, sQuery, player);
+	db.Format(sQuery, sizeof(sQuery), "SELECT * FROM cold_prestige_items WHERE steamid = '%s';", sSteam);
+	db.Query(SQL_LoadPlayerItems, sQuery, player);
 }
 
 void SQL_LoadPlayerItems(Database db, DBResultSet results, const char[] error, PClient player)
@@ -733,4 +751,10 @@ void SQL_ItemSaveFailure(Database db, PClient player, int numQueries, const char
 	player.GetSteamID(sSteam, sizeof(sSteam));
 	LogError("Transaction failed trying to save player %N's (%s) data. Transaction failed at query %i of %i. Error: %s. Current prestige: %i. Current items: %s", player.ClientIndex, sSteam, failIndex, numQueries, error, player.Prestige, sItems);
 	player.Chat("%s Failed to save your data, please try reconnecting and/or contact a developer about this issue.", CMDTAG);
+}
+
+void SQL_GenericQuery(Database db, DBResultSet results, const char[] error, any data)
+{
+	if(results == null)
+		LogError("SQL_GenericQuery Failed! Error: %s", error);
 }

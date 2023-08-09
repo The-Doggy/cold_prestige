@@ -5,11 +5,12 @@
 #include <sdkhooks>
 #include <customguns>
 
+#include <prestige>
+#include <prestige/cold_prestige>
+
 #pragma newdecls required
 #pragma semicolon 1
 #pragma dynamic 131072
-
-#include <prestige/cold_prestige>
 
 //#define DEBUG // COMMENT THIS OUT FOR PRODUCTION BUILDS
 
@@ -31,27 +32,20 @@ ArrayList g_ItemList;
 static ArrayList excludedWeapons; // Used to exclude custom weapons that don't have a corresponding item in the itemlist
 GlobalForward g_ForwardOnPlayerLoaded;
 
-// These need to be here otherwise we get tag mismatches >:(
-#include <prestige/PItem>
-#include <prestige/PClient>
-
 PClient g_Players[MAXPLAYERS + 1];
 bool g_bConfirmReset[MAXPLAYERS + 1];
 
 // Includes that need access to global vars and classes
-#include "prestige/weapons/weapon_paintgun.sp"
-#include "prestige/util.sp"
-#include "prestige/natives.sp"
-#include "prestige/database.sp"
-#include "prestige/menus.sp"
 #include "prestige/commands.sp"
+#include "prestige/database.sp"
 #include "prestige/ecoreset.sp"
-#include "prestige/weapons.sp"
+#include "prestige/menus.sp"
+#include "prestige/natives.sp"
+#include "prestige/util.sp"
 
 #if defined DEBUG
 #include "prestige/debug.sp"
 #endif
-
 
 public void OnPluginStart()
 {
@@ -91,9 +85,6 @@ public void OnPluginStart()
 
 	// Hook player_spawn to setup models and custom weapons
 	HookEvent("player_spawn", Event_PlayerSpawn);
-
-	// Create StringMap for weapon_paintgun sprites
-	g_PaintSprites = new StringMap();
 }
 
 public void OnMapStart()
@@ -102,9 +93,6 @@ public void OnMapStart()
 	PrecacheSound("buttons/button8.wav"); // Failure
 	PrecacheSound("vo/citadel/al_success_yes02_nr.wav"); // Success
 	PrecacheSound("hl1/fvox/boop.wav"); // Item sold, I don't really like this sound, should find something better later
-
-	// Precaches and adds all the needed assets for custom weapons to the downloads table
-	SetupWeaponAssets();
 }
 
 public void OnClientPutInServer(int client)

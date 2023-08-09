@@ -48,6 +48,12 @@ native PItem GetItemFromVariable(const char[] variable);
 
 native PClient GetPlayerPClient(int client);
 
+native Database RequestDatabaseConnection();
+
+native void ReloadItemlist();
+
+native bool AddToLateQueue(int userid);
+
 // Use GetPlayerPClient to get the client's PClient inside this forward
 forward void Prestige_OnPlayerLoaded(int client);
 
