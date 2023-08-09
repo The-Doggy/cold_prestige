@@ -4,6 +4,11 @@
 #endif
 #define _prestige_maininclude
 
+#include <sourcemod>
+#include <morecolors>
+#include <sdktools>
+#include <hextags>
+
 public SharedPlugin __pl_prestige =
 {
 	name = "cold_prestige",
