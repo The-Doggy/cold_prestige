@@ -60,7 +60,7 @@ methodmap PClient < StringMap
 		char sQuery[256], sSteam[32];
 		this.GetSteamID(sSteam, sizeof(sSteam));
 		db.Format(sQuery, sizeof(sQuery), "UPDATE cold_prestige SET %s = %i WHERE steamid = '%s';", field, value, sSteam);
-		db.Query(SQL_GenericQuery, sQuery);
+		db.Query(SQL_GenericQueryEx, sQuery);
 	}
 
 	property int Prestige
@@ -137,7 +137,7 @@ methodmap PClient < StringMap
 		char sQuery[256], sSteam[32];
 		this.GetSteamID(sSteam, sizeof(sSteam));
 		db.Format(sQuery, sizeof(sQuery), "UPDATE cold_prestige SET %s = '%s' WHERE steamid = '%s';", field, value, sSteam);
-		db.Query(SQL_GenericQuery, sQuery);
+		db.Query(SQL_GenericQueryEx, sQuery);
 	}
 
 	public PItem GetInventoryItem(int id)
@@ -362,7 +362,7 @@ methodmap PClient < StringMap
 		char sQuery[512], sSteam[32];
 		this.GetSteamID(sSteam, sizeof(sSteam));
 		db.Format(sQuery, sizeof(sQuery), "INSERT IGNORE INTO cold_prestige_items (steamid, itemid, equipped) VALUES ('%s', %i, %i) ON DUPLICATE KEY UPDATE equipped = %i;", sSteam, item.ID, item.Equipped, item.Equipped);
-		db.Query(SQL_GenericQuery, sQuery, this);
+		db.Query(SQL_GenericQueryEx, sQuery, this);
 	}
 
 	public void DeleteItem(PItem item)
@@ -383,7 +383,7 @@ methodmap PClient < StringMap
 		char sQuery[512], sSteam[32];
 		this.GetSteamID(sSteam, sizeof(sSteam));
 		db.Format(sQuery, sizeof(sQuery), "DELETE FROM cold_prestige_items WHERE itemid = %i AND steamid = '%s';", item.ID, sSteam);
-		db.Query(SQL_GenericQuery, sQuery, this);
+		db.Query(SQL_GenericQueryEx, sQuery, this);
 	}
 
 	public void AddInventoryItem(PItem item)
@@ -457,137 +457,142 @@ methodmap PClient < StringMap
 	}
 
 	public void UnequipItem(PItem item)
-    {
-        if(item == null || !this.HasItem(item)) return;
+	{
+		if(item == null || !this.HasItem(item)) return;
 
-        item.Equipped = false;
-        switch(item.Type)
-        {
-        	case ItemType_CustomTag:
-        	{
-        		HexTags_SetClientTag(this.ClientIndex, ChatTag, "");
-        	}
+		item.Equipped = false;
+		switch(item.Type)
+		{
+			case ItemType_CustomTag:
+			{
+				HexTags_SetClientTag(this.ClientIndex, ChatTag, "");
+			}
 
-        	case ItemType_NameColor:
-        	{
-        		this.SetNameColor("");
-        	}
+			case ItemType_NameColor:
+			{
+				this.SetNameColor("");
+			}
 
-        	case ItemType_ChatColor:
-        	{
-        		this.SetChatColor("");
-        	}
+			case ItemType_ChatColor:
+			{
+				this.SetChatColor("");
+			}
 
-        	case ItemType_Model:
-        	{
-        		// Set the player to a random hl2 citizen model for now
-        		char sModel[PLATFORM_MAX_PATH];
-        		Format(sModel, sizeof(sModel), "models/humans/group0%i/%s_0%i.mdl", GetRandomInt(1, 3), GetRandomInt(1, 2) == 2 ? "male" : "female", GetRandomInt(1, 7));
-        		this.SetModel(sModel);
-        	}
+			case ItemType_Model:
+			{
+				// Set the player to a random hl2 citizen model for now
+				char sModel[PLATFORM_MAX_PATH];
+				Format(sModel, sizeof(sModel), "models/humans/group0%i/%s_0%i.mdl", GetRandomInt(1, 3), GetRandomInt(1, 2) == 2 ? "male" : "female", GetRandomInt(1, 7));
+				this.SetModel(sModel);
+			}
 
-        	case ItemType_CustomWeapon:
-        	{
+			case ItemType_CustomWeapon:
+			{
 
-        	}
+			}
 
-        	case ItemType_PaintColor:
-        	{
+			case ItemType_PaintColor:
+			{
 
-        	}
+			}
 
-        	case ItemType_PaintSize:
-        	{
+			case ItemType_PaintSize:
+			{
 
-        	}
-        }
+			}
+		}
 
-        this.SaveItem(item);
-    }
+		this.SaveItem(item);
+
+		Call_StartForward(g_ForwardOnItemUnequipped);
+		Call_PushCell(this.ClientIndex);
+		Call_PushCell(item.ID);
+		Call_Finish();
+	}
 
 	public void UnequipItemsByType(ItemType type)
-    {
-    	ArrayList inventory = this.Inventory;
-    	for(int i = 0; i < inventory.Length; i++)
-    	{
-    		PItem item = inventory.Get(i);
-    		if(item == null)
-    		{
-    			LogError("Found invalid item in %N's inventory at index %i", this.ClientIndex, i);
-    			continue;
-    		}
+	{
+		ArrayList inventory = this.Inventory;
+		for(int i = 0; i < inventory.Length; i++)
+		{
+			PItem item = inventory.Get(i);
+			if(item == null)
+			{
+				LogError("Found invalid item in %N's inventory at index %i", this.ClientIndex, i);
+				continue;
+			}
 
-    		if(item.Type == type)
-    		{
-    			this.UnequipItem(item);
-    		}
-    	}
-    }
+			if(item.Type == type)
+			{
+				this.UnequipItem(item);
+			}
+		}
+	}
 
 	public void EquipItem(PItem item)
-    {
-        if(item == null || !this.HasItem(item)) return;
+	{
+		if(item == null || !this.HasItem(item)) return;
 
-        // Custom weapons are currently the only type of item that can have multiple equipped at the same time
-        if(item.Type != ItemType_CustomWeapon)
-        {
-        	// Unequip other items of same type before equipping new item
-        	this.UnequipItemsByType(item.Type);
-        }
+		// Custom weapons are currently the only type of item that can have multiple equipped at the same time
+		if(item.Type != ItemType_CustomWeapon)
+		{
+			// Unequip other items of same type before equipping new item
+			this.UnequipItemsByType(item.Type);
+		}
 
-        char sVariable[256];
-        item.GetVariable(sVariable, sizeof(sVariable));
-        item.Equipped = true;
+		char sVariable[256];
+		item.GetVariable(sVariable, sizeof(sVariable));
+		item.Equipped = true;
 
-        switch(item.Type)
-        {
-        	case ItemType_CustomTag:
-        	{
-        		char sTag[128];
-        		this.GetCustomTag(sTag, sizeof(sTag));
+		switch(item.Type)
+		{
+			case ItemType_CustomTag:
+			{
+				char sTag[128];
+				this.GetCustomTag(sTag, sizeof(sTag));
 
-        		// Set tag to this if empty
-        		if(sTag[0] == '\0')
-        		{
-        			this.SetCustomTag("[Veteran] ");
-        		}
-        		else
-        		{
-        			this.SetCustomTag(sTag);
-        		}
+				// Set tag to this if empty
+				if(sTag[0] == '\0')
+				{
+					this.SetCustomTag("[Veteran] ");
+				}
+				else
+				{
+					this.SetCustomTag(sTag);
+				}
 
-        		this.Chat("%s Use {green}!changetag{default} to change your custom tag!", CMDTAG);
-        	}
+				this.Chat("%s Use {green}!changetag{default} to change your custom tag!", CMDTAG);
+			}
 
-        	case ItemType_NameColor:
-        	{
-        		this.SetNameColor(sVariable);
-        	}
+			case ItemType_NameColor:
+			{
+				this.SetNameColor(sVariable);
+			}
 
-        	case ItemType_ChatColor:
-        	{
-        		this.SetChatColor(sVariable);
-        	}
+			case ItemType_ChatColor:
+			{
+				this.SetChatColor(sVariable);
+			}
 
-        	case ItemType_Model:
-        	{
-        		this.SetModel(sVariable);
-        	}
+			case ItemType_Model:
+			{
+				this.SetModel(sVariable);
+			}
 
-        	case ItemType_CustomWeapon:
-        	{
-        		CG_GiveGun(this.ClientIndex, sVariable);
-        	}
+			case ItemType_CustomWeapon:
+			{
+				CG_GiveGun(this.ClientIndex, sVariable);
+			}
 
-        	case ItemType_PaintColor:
-        	{
+			case ItemType_PaintColor:
+			{
 
-        	}
+			}
 
-        	case ItemType_PaintSize:
-        	{
+			case ItemType_PaintSize:
+			{
 
-        	}
+			}
 
 			case ItemType_PrinterColor:
 			{
@@ -598,10 +603,15 @@ methodmap PClient < StringMap
 			{
 				
 			}
-        }
+		}
 
-        this.SaveItem(item);
-    }
+		this.SaveItem(item)
+		
+		Call_StartForward(g_ForwardOnItemEquipped);
+		Call_PushCell(this.ClientIndex);
+		Call_PushCell(item.ID);
+		Call_Finish();
+	}
 
 #if defined DEBUG
 	public void Dump(PClient player)
@@ -753,8 +763,8 @@ void SQL_ItemSaveFailure(Database db, PClient player, int numQueries, const char
 	player.Chat("%s Failed to save your data, please try reconnecting and/or contact a developer about this issue.", CMDTAG);
 }
 
-void SQL_GenericQuery(Database db, DBResultSet results, const char[] error, any data)
+void SQL_GenericQueryEx(Database db, DBResultSet results, const char[] error, any data)
 {
 	if(results == null)
-		LogError("SQL_GenericQuery Failed! Error: %s", error);
+		LogError("SQL_GenericQueryEx Failed! Error: %s", error);
 }

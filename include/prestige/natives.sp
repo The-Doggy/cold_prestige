@@ -14,6 +14,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("AddToLateQueue", Native_AddToLateQueue);
 
 	g_ForwardOnPlayerLoaded = CreateGlobalForward("Prestige_OnPlayerLoaded", ET_Ignore, Param_Cell);
+	g_ForwardOnItemEquipped = CreateGlobalForward("Prestige_OnItemEquipped", ET_Ignore, Param_Cell, Param_Cell);
+	g_ForwardOnItemUnequipped = CreateGlobalForward("Prestige_OnItemUnequipped", ET_Ignore, Param_Cell, Param_Cell);
 
 	g_bLate = late;
 	return APLRes_Success;

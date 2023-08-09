@@ -30,7 +30,6 @@ ArrayStack g_LoadQueue;
 StringMap g_smTotalValue;
 ArrayList g_ItemList;
 static ArrayList excludedWeapons; // Used to exclude custom weapons that don't have a corresponding item in the itemlist
-GlobalForward g_ForwardOnPlayerLoaded;
 
 PClient g_Players[MAXPLAYERS + 1];
 bool g_bConfirmReset[MAXPLAYERS + 1];
@@ -143,7 +142,7 @@ Action Timer_LoadFromQueue(Handle timer, any data)
 	while(!g_LoadQueue.Empty)
 	{
 		int client = GetClientOfUserId(g_LoadQueue.Pop());
-		if(!IsValidClient(client)) continue;
+		if(!client) continue;
 
 		LoadClientData(client);
 	}

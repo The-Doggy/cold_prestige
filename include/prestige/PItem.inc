@@ -145,6 +145,7 @@ methodmap PItem < StringMap
         ReloadItemlist();
     }
 
+    /* Clones the given PItem as a new PItem representation, does not actually clone any Handles */
     public PItem Clone()
     {
         char name[32], variable[64];

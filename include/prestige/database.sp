@@ -126,9 +126,3 @@ void SQL_LoadItemList(Database db, DBResultSet results, const char[] error, any 
 
 	LogMessage("%s Loaded %i items from the database", CONSOLETAG, results.RowCount);
 }
-
-// void SQL_GenericQuery(Database db, DBResultSet results, const char[] error, any data)
-// {
-// 	if(results == null)
-// 		LogError("SQL_GenericQuery Failed! Error: %s", error);
-// }

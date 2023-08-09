@@ -8,6 +8,7 @@
 #include <morecolors>
 #include <sdktools>
 #include <hextags>
+#include <customguns>
 
 public SharedPlugin __pl_prestige =
 {
@@ -20,8 +21,12 @@ public SharedPlugin __pl_prestige =
 	#endif
 };
 
+#if !defined CMDTAG
 #define CMDTAG			"{dodgerblue}[CoLD Prestige]{default}"
+#endif
+#if !defined CONSOLETAG
 #define CONSOLETAG 		"[CoLD Prestige]"
+#endif
 
 // Prestige rank tiers
 #define PRESTIGE_RANK1	(1 << 0)
@@ -59,15 +64,16 @@ native void ReloadItemlist();
 
 native bool AddToLateQueue(int userid);
 
+GlobalForward g_ForwardOnPlayerLoaded;
+GlobalForward g_ForwardOnItemEquipped;
+GlobalForward g_ForwardOnItemUnequipped;
+
 // Use GetPlayerPClient to get the client's PClient inside this forward
 forward void Prestige_OnPlayerLoaded(int client);
 
-stock bool IsValidClient(int client)
-{
-	return client >= 1 && 
-	client <= MaxClients && 
-	IsClientInGame(client);
-}
+forward void Prestige_OnItemEquipped(int client, int itemID);
+
+forward void Prestige_OnItemUnequipped(int client, int itemID);
 
 stock void TE_SetupWorldDecal( const float vecOrigin[3], int index )
 {    
