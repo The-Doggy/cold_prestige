@@ -36,6 +36,11 @@ char g_cPaintSizes[][][64] = // Modify this to add more sizes
 
 StringMap g_PaintSprites;
 
+public void OnPluginStart()
+{
+	g_PaintSprites = new StringMap();
+}
+
 public void OnMapStart()
 {
 	SetupPaintgunAssets();
