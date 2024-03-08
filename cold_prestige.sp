@@ -373,6 +373,27 @@ void SetupGrenades(int grenadeRef)
 	}
 }
 
+public void OnPlayerRunCmdPost(int client, int buttons, int impulse, const float vel[3], const float angles[3], int weapon, int subtype, int cmdnum, int tickcount, int seed, const int mouse[2])
+{
+	PClient player = g_Players[client];
+	if(player == null || !player.Loaded || g_ItemList.Length == 0)
+	{
+		return;
+	}
+
+	// Checking if model has been changed by another plugin/game function
+	char curModel[128], equipModel[128];
+	player.GetModel(equipModel, sizeof(equipModel));
+	if(equipModel[0] != '\0') // Ensure equipped model isn't empty
+	{
+		GetEntPropString(client, Prop_Data, "m_ModelName", curModel, sizeof(curModel));
+		if(!StrEqual(curModel, equipModel)) // Set model back to equipped model if it has changed
+		{
+			player.SetModel(equipModel);
+		}
+	}
+}
+
 public void HexTags_OnTagsUpdated(int client)
 {
 	PClient player = g_Players[client];
