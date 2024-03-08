@@ -22,7 +22,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 }
 
 // This was originally just going to be a stock function in the main include but for some reason that broke absolutely fucking everything so now we're doing this
-public any Native_GetItemFromID(Handle plugin, int numParams)
+any Native_GetItemFromID(Handle plugin, int numParams)
 {
 	int id = GetNativeCell(1);
 
@@ -60,7 +60,7 @@ public any Native_GetItemFromID(Handle plugin, int numParams)
 }
 
 // Yup...
-public any Native_GetItemFromType(Handle plugin, int numParams)
+any Native_GetItemFromType(Handle plugin, int numParams)
 {
 	ItemType type = GetNativeCell(1);
 
@@ -97,7 +97,7 @@ public any Native_GetItemFromType(Handle plugin, int numParams)
 	return item;
 }
 
-public any Native_GetItemsOfType(Handle plugin, int numParams)
+any Native_GetItemsOfType(Handle plugin, int numParams)
 {
 	ItemType type = GetNativeCell(1);
 	ArrayList items = new ArrayList();
@@ -128,7 +128,7 @@ public any Native_GetItemsOfType(Handle plugin, int numParams)
 	return items;
 }
 
-public any Native_GetItemFromVariable(Handle plugin, int numParams)
+any Native_GetItemFromVariable(Handle plugin, int numParams)
 {
 	int len;
 	GetNativeStringLength(1, len);
@@ -171,7 +171,7 @@ public any Native_GetItemFromVariable(Handle plugin, int numParams)
 	return item;
 }
 
-public any Native_GetPlayer(Handle plugin, int numParams)
+any Native_GetPlayer(Handle plugin, int numParams)
 {
 	int client = GetNativeCell(1);
 
@@ -184,7 +184,7 @@ public any Native_GetPlayer(Handle plugin, int numParams)
 	return g_Players[client];
 }
 
-public any Native_RequestDatabaseConnection(Handle plugin, int numParams)
+any Native_RequestDatabaseConnection(Handle plugin, int numParams)
 {
 	return g_Database == null ? view_as<Handle>(null) : CloneHandle(g_Database, plugin);
 }
@@ -194,7 +194,7 @@ public any Native_ReloadItemlist(Handle plugin, int numParams)
 	LoadItemList();
 }
 
-public any Native_AddToLateQueue(Handle plugin, int numParams)
+any Native_AddToLateQueue(Handle plugin, int numParams)
 {
 	int userid = GetNativeCell(1);
 	int client = GetClientOfUserId(userid);
