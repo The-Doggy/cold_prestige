@@ -192,7 +192,6 @@ void SQL_PrestigeSuccess(Database db, any data, int numQueries, DBResultSet[] re
 	g_Database.Format(sQuery, sizeof(sQuery), "DELETE FROM bluerp_furniture_furniture WHERE doorid <> 0;");
 	resetDataTxn.AddQuery(sQuery);
 
-	***REMOVED***
 	g_Database.Format(sQuery, sizeof(sQuery), "UPDATE bluerp_players SET cash = 0, bank = 0, income = 0, felony = 0, cuffed = 0, jail_time = 0, jail_progress = 0, minutes = 0, maxjailseconds = 180, experience = 0, gangid = '-1', respect = 0, specialty = '';");
 	resetDataTxn.AddQuery(sQuery);
 
