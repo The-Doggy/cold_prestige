@@ -748,6 +748,16 @@ void SQL_LoadPlayerItems(Database db, DBResultSet results, const char[] error, P
 	OnPlayerLoaded(player);
 }
 
+void OnPlayerLoaded(PClient player)
+{
+	player.Loaded = true;
+	player.Chat("%s Welcome back, you have {green}%i{default} prestige points.\n%s NB: Prestige store is currently in beta, if you encounter any bugs please report them to a developer. Thank you for your patience.", CMDTAG, player.Prestige, CMDTAG);
+
+	Call_StartForward(g_ForwardOnPlayerLoaded);
+	Call_PushCell(player.ClientIndex);
+	Call_Finish();
+}
+
 void SQL_ItemSaveFailure(Database db, PClient player, int numQueries, const char[] error, int failIndex, any[] queryData)
 {
 	if(player == null || !IsClientInGame(GetClientOfUserId(player.UserID)))
