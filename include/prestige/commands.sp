@@ -375,3 +375,9 @@ Action Command_RemoveCustomGuns(int client, int args)
 	CReplyToCommand(client, "%s Your custom guns have been removed until your next spawn.", CMDTAG);
 	return Plugin_Handled;
 }
+
+Action Command_PreviewModels(int client, int args)
+{
+	PreviewModels(client);
+	return Plugin_Handled;
+}

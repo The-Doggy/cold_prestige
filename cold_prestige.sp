@@ -5,14 +5,14 @@
 #include <sdkhooks>
 #include <customguns>
 
+//#define DEBUG // COMMENT THIS OUT FOR PRODUCTION BUILDS
+
 #include <prestige>
 #include <prestige/cold_prestige>
 
 #pragma newdecls required
 #pragma semicolon 1
 #pragma dynamic 131072
-
-//#define DEBUG // COMMENT THIS OUT FOR PRODUCTION BUILDS
 
 public Plugin myinfo = 
 {
@@ -39,6 +39,7 @@ bool g_bConfirmReset[MAXPLAYERS + 1];
 #include "prestige/database.sp"
 #include "prestige/ecoreset.sp"
 #include "prestige/menus.sp"
+#include "prestige/models.sp"
 #include "prestige/natives.sp"
 #include "prestige/util.sp"
 
@@ -66,6 +67,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_prestige", Command_OpenStore, "Opens the prestige store");
 	RegConsoleCmd("sm_changetag", Command_SetTag, "Changes your custom tag");
 	RegConsoleCmd("sm_removeguns", Command_RemoveCustomGuns, "Removes your custom guns until your next respawn");
+	RegConsoleCmd("sm_preview", Command_PreviewModels, "Previews custom models");
 
 	#if defined DEBUG
 	RegConsoleCmd("sm_dump", Command_DumpInfo);
@@ -81,6 +83,9 @@ public void OnPluginStart()
 
 	// Create ArrayList for storing a reference to every item contained in the database
 	g_ItemList = new ArrayList();
+
+	// StringMap for storing model names and file paths
+	g_Models = new StringMap();
 
 	// Hook player_spawn to setup models and custom weapons
 	HookEvent("player_spawn", Event_PlayerSpawn);
@@ -98,6 +103,7 @@ public void OnClientPutInServer(int client)
 {
 	// Reset client vars
 	g_bConfirmReset[client] = false;
+	g_InPreview[client] = false;
 
 	// If the PClient that was last occupying this slot is still valid, kill it
 	if(g_Players[client] != null)
@@ -391,6 +397,77 @@ public void OnPlayerRunCmdPost(int client, int buttons, int impulse, const float
 		{
 			player.SetModel(equipModel);
 		}
+	}
+
+	// Setting models while in preview mode
+	if(g_InPreview[client])
+	{
+		static float lastPress[MAXPLAYERS + 1];
+
+		if(buttons & IN_MOVELEFT && GetGameTime() - lastPress[client] >= 0.25)
+		{
+			g_CurrentModel[client] -= 1;
+
+			// Wrap around to last model if we go below 0
+			if(g_CurrentModel[client] < 0)
+			{
+				g_CurrentModel[client] = g_Models.Size - 1;
+			}
+
+			lastPress[client] = GetGameTime();
+		}
+		else if(buttons & IN_MOVERIGHT && GetGameTime() - lastPress[client] >= 0.25)
+		{
+			g_CurrentModel[client] += 1;
+
+			// Wrap around to first model if we hit max size
+			if(g_CurrentModel[client] >= g_Models.Size)
+			{
+				g_CurrentModel[client] = 0;
+			}
+
+			lastPress[client] = GetGameTime();
+		}
+		else if(buttons & IN_ATTACK)
+		{
+			// If player had a model equipped previously set them back to it
+			PItem item = player.GetEquippedItemOfType(ItemType_Model);
+			if(item != null)
+			{
+				char model[128];
+				item.GetVariable(model, sizeof(model));
+				player.SetModel(model);
+				delete item;
+			}
+			else // Player doesn't have a model equipped
+			{
+				// Set the player to a random hl2 citizen model for now
+				char sModel[PLATFORM_MAX_PATH];
+				Format(sModel, sizeof(sModel), "models/humans/group0%i/%s_0%i.mdl", GetRandomInt(1, 3), GetRandomInt(1, 2) == 2 ? "male" : "female", GetRandomInt(1, 7));
+				player.SetModel(sModel);
+			}
+
+			ExitPreview(client);
+			return;
+		}
+		
+		char modelName[128], modelPath[128];
+		StringMapSnapshot snapshot = g_Models.Snapshot();
+		snapshot.GetKey(g_CurrentModel[client], modelName, sizeof(modelName));
+		g_Models.GetString(modelName, modelPath, sizeof(modelPath));
+		delete snapshot;
+
+		PrecacheModel(modelPath);
+		player.SetModel(modelPath);
+
+		if(g_HudSync == null)
+		{
+			g_HudSync = CreateHudSynchronizer();
+		}
+
+		ClearSyncHud(client, g_HudSync);
+		SetHudTextParams(-1.0, 0.9, 0.1, 0, 255, 0, 255);
+		ShowSyncHudText(client, g_HudSync, "%i/%i\n%s", g_CurrentModel[client] + 1, g_Models.Size, modelName);
 	}
 }
 

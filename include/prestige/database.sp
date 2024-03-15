@@ -125,4 +125,5 @@ void SQL_LoadItemList(Database db, DBResultSet results, const char[] error, any 
 	} while(results.FetchRow());
 
 	LogMessage("%s Loaded %i items from the database", CONSOLETAG, results.RowCount);
+	SetupModelList();
 }
