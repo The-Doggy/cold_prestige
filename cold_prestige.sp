@@ -105,6 +105,7 @@ public void OnClientPutInServer(int client)
 	// Reset client vars
 	g_bConfirmReset[client] = false;
 	g_InPreview[client] = false;
+	g_ModelEnt[client] = -1;
 
 	// If the PClient that was last occupying this slot is still valid, kill it
 	if(g_Players[client] != null)
@@ -123,6 +124,11 @@ public void OnClientPostAdminCheck(int client)
 
 public void OnClientDisconnect(int client)
 {
+	if(g_InPreview[client])
+	{
+		ExitPreview(client);
+	}
+
 	if(g_Players[client] != null)
 	{
 		// Only save players that are loaded
@@ -383,7 +389,7 @@ void SetupGrenades(int grenadeRef)
 public void OnPlayerRunCmdPost(int client, int buttons, int impulse, const float vel[3], const float angles[3], int weapon, int subtype, int cmdnum, int tickcount, int seed, const int mouse[2])
 {
 	PClient player = g_Players[client];
-	if(player == null || !player.Loaded || g_ItemList.Length == 0)
+	if(player == null || !player.Loaded || g_ItemList.Length == 0 || GetClientTeam(client) == 2)
 	{
 		return;
 	}
@@ -403,6 +409,11 @@ public void OnPlayerRunCmdPost(int client, int buttons, int impulse, const float
 	// Setting models while in preview mode
 	if(g_InPreview[client])
 	{
+		if(!IsPlayerAlive(client))
+		{
+			ExitPreview(client);
+		}
+
 		static float lastPress[MAXPLAYERS + 1];
 
 		if(buttons & IN_MOVELEFT && GetGameTime() - lastPress[client] >= 0.25)
@@ -429,6 +440,64 @@ public void OnPlayerRunCmdPost(int client, int buttons, int impulse, const float
 
 			lastPress[client] = GetGameTime();
 		}
+		
+		char modelName[128], modelPath[128];
+		StringMapSnapshot snapshot = g_Models.Snapshot();
+		snapshot.GetKey(g_CurrentModel[client], modelName, sizeof(modelName));
+		g_Models.GetString(modelName, modelPath, sizeof(modelPath));
+		delete snapshot;
+
+		// Change model to selected one
+		PrecacheModel(modelPath);
+		if(IsValidEntity(g_ModelEnt[client]))
+		{
+			SetEntityModel(g_ModelEnt[client], modelPath);
+
+			// Rotate model
+			float ang[3];
+			GetEntPropVector(g_ModelEnt[client], Prop_Send, "m_angRotation", ang);
+			ang[1] += 2.5;
+			TeleportEntity(g_ModelEnt[client], NULL_VECTOR, ang, NULL_VECTOR);
+		}
+
+		if(g_HudSync == null)
+		{
+			g_HudSync = CreateHudSynchronizer();
+		}
+
+		ClearSyncHud(client, g_HudSync);
+		SetHudTextParams(-1.0, 0.9, 0.1, 0, 255, 0, 255);
+		ShowSyncHudText(client, g_HudSync, "%i/%i\n%s", g_CurrentModel[client] + 1, g_Models.Size, modelName);
+
+		if(buttons & IN_USE && GetGameTime() - lastPress[client] >= 0.25)
+		{
+			lastPress[client] = GetGameTime();
+
+			PItem item = GetItemFromVariable(modelPath);
+			if(item == null)
+			{
+				CPrintToChat(client, "%s Unable to purchase model at this time, please try again later.", CMDTAG);
+				return;
+			}
+
+			if(item.Price > player.Prestige)
+			{
+				player.Chat("%s You don't have enough prestige to purchase this item. (Need: %i - Have: %i)", CMDTAG, item.Price, player.Prestige);
+				EmitSoundToClient(client, "buttons/button8.wav");
+				delete item;
+				return;
+			}
+
+			player.AddInventoryItem(item);
+			player.Prestige -= item.Price;
+			player.EquipItem(item);
+			player.Save();
+
+			CPrintToChat(client, "%s Successfully purchased and equipped {green}%s{default} model!", CMDTAG, modelName);
+			EmitSoundToClient(client, "vo/citadel/al_success_yes02_nr.wav");
+
+			ExitPreview(client);
+		}
 		else if(buttons & IN_ATTACK)
 		{
 			// If player had a model equipped previously set them back to it
@@ -451,24 +520,6 @@ public void OnPlayerRunCmdPost(int client, int buttons, int impulse, const float
 			ExitPreview(client);
 			return;
 		}
-		
-		char modelName[128], modelPath[128];
-		StringMapSnapshot snapshot = g_Models.Snapshot();
-		snapshot.GetKey(g_CurrentModel[client], modelName, sizeof(modelName));
-		g_Models.GetString(modelName, modelPath, sizeof(modelPath));
-		delete snapshot;
-
-		PrecacheModel(modelPath);
-		player.SetModel(modelPath);
-
-		if(g_HudSync == null)
-		{
-			g_HudSync = CreateHudSynchronizer();
-		}
-
-		ClearSyncHud(client, g_HudSync);
-		SetHudTextParams(-1.0, 0.9, 0.1, 0, 255, 0, 255);
-		ShowSyncHudText(client, g_HudSync, "%i/%i\n%s", g_CurrentModel[client] + 1, g_Models.Size, modelName);
 	}
 }
 
