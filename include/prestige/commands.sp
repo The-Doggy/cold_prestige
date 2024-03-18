@@ -2,6 +2,12 @@
 
 Action Command_OpenStore(int client, int args)
 {
+	if(g_Busy)
+	{
+		CReplyToCommand(client, "%s This action cannot be performed currently, please try again in a minute.", CMDTAG);
+		return Plugin_Handled;
+	}
+	
 	if(client == 0)
 	{
 		PrintToServer("This command can only be executed in-game.");
@@ -84,6 +90,12 @@ Action Command_ShowPrestige(int client, int args)
 
 Action Command_SetPrestige(int client, int args)
 {
+	if(g_Busy)
+	{
+		CReplyToCommand(client, "%s This action cannot be performed currently, please try again in a minute.", CMDTAG);
+		return Plugin_Handled;
+	}
+
 	if(args != 2)
 	{
 		CReplyToCommand(client, "%s Invalid Syntax. Usage: sm_setprestige <player> <prestige>", CMDTAG);
@@ -120,6 +132,12 @@ Action Command_SetPrestige(int client, int args)
 
 Action Command_CreateItem(int client, int args)
 {
+	if(g_Busy)
+	{
+		CReplyToCommand(client, "%s This action cannot be performed currently, please try again in a minute.", CMDTAG);
+		return Plugin_Handled;
+	}
+
 	if(args != 4)
 	{
 		CReplyToCommand(client, "%s Invalid Syntax. Usage: sm_createstoreitem <name> <type> <price> <variable>", CMDTAG);
@@ -180,6 +198,12 @@ Action Command_CreateItem(int client, int args)
 
 Action Command_DeleteItem(int client, int args)
 {
+	if(g_Busy)
+	{
+		CReplyToCommand(client, "%s This action cannot be performed currently, please try again in a minute.", CMDTAG);
+		return Plugin_Handled;
+	}
+
 	if(args != 1)
 	{
 		CReplyToCommand(client, "%s Invalid Syntax. Usage: sm_deletestoreitem <id>", CMDTAG);
@@ -241,6 +265,12 @@ Action Command_DeleteItem(int client, int args)
 
 Action Command_ListItems(int client, int args)
 {
+	if(g_Busy)
+	{
+		CReplyToCommand(client, "%s This action cannot be performed currently, please try again in a minute.", CMDTAG);
+		return Plugin_Handled;
+	}
+
 	if(g_ItemList.Length == 0)
 	{
 		CReplyToCommand(client, "%s Itemlist has no items.", CMDTAG);
@@ -268,6 +298,12 @@ Action Command_ListItems(int client, int args)
 
 Action Command_GiveItem(int client, int args)
 {
+	if(g_Busy)
+	{
+		CReplyToCommand(client, "%s This action cannot be performed currently, please try again in a minute.", CMDTAG);
+		return Plugin_Handled;
+	}
+
 	if(args != 2)
 	{
 		CReplyToCommand(client, "%s Invalid Syntax. Usage: sm_givestoreitem <player> <itemid>", CMDTAG);
@@ -314,6 +350,12 @@ Action Command_GiveItem(int client, int args)
 
 Action Command_RemoveItem(int client, int args)
 {
+	if(g_Busy)
+	{
+		CReplyToCommand(client, "%s This action cannot be performed currently, please try again in a minute.", CMDTAG);
+		return Plugin_Handled;
+	}
+
 	if(args != 2)
 	{
 		CReplyToCommand(client, "%s Invalid Syntax. Usage: sm_removestoreitem <player> <itemid>", CMDTAG);

@@ -26,6 +26,7 @@ public Plugin myinfo =
 // Global vars
 Database g_Database;
 bool g_bLate;
+bool g_Busy; // This should be used whenever we need to prevent an action from occuring if there is an asynchronous task currently running
 ArrayStack g_LoadQueue;
 StringMap g_smTotalValue;
 ArrayList g_ItemList;

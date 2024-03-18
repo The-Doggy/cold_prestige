@@ -91,6 +91,7 @@ void LoadItemList()
 	}
 	g_ItemList.Clear();
 
+	g_Busy = true;
 	char sQuery[256];
 	g_Database.Format(sQuery, sizeof(sQuery), "SELECT * FROM cold_prestige_itemlist");
 	g_Database.Query(SQL_LoadItemList, sQuery);
@@ -125,5 +126,6 @@ void SQL_LoadItemList(Database db, DBResultSet results, const char[] error, any 
 	} while(results.FetchRow());
 
 	LogMessage("%s Loaded %i items from the database", CONSOLETAG, results.RowCount);
+	g_Busy = false;
 	SetupModelList();
 }
