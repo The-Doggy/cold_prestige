@@ -518,7 +518,6 @@ public void OnPlayerRunCmdPost(int client, int buttons, int impulse, const float
 			}
 
 			ExitPreview(client);
-			return;
 		}
 	}
 }

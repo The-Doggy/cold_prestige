@@ -7,7 +7,7 @@ Action Command_OpenStore(int client, int args)
 		CReplyToCommand(client, "%s This action cannot be performed currently, please try again in a minute.", CMDTAG);
 		return Plugin_Handled;
 	}
-	
+
 	if(client == 0)
 	{
 		PrintToServer("This command can only be executed in-game.");
@@ -249,7 +249,10 @@ Action Command_DeleteItem(int client, int args)
 			if(player.HasItem(item))
 			{
 				player.RemoveInventoryItem(player.GetInventoryItem(id));
-			}
+
+				// Refund prestige points
+				player.Prestige += item.Price;
+			}	
 		}
 
 		item.Delete();

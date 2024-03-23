@@ -129,7 +129,7 @@ methodmap PItem < StringMap
         db.Query(SQL_SaveItem, query);
     }
 
-    public void Delete()
+    public void Delete(bool refund = true)
     {
         Database db = RequestDatabaseConnection();
         if(db == null)
@@ -138,11 +138,25 @@ methodmap PItem < StringMap
             return;
         }
 
+        Transaction deleteTxn = new Transaction();
         char query[512];
-        db.Format(query, sizeof(query), "DELETE FROM cold_prestige_itemlist WHERE itemid=%i;", this.ID);
-        db.Query(SQL_DeleteItem, query);
 
-        ReloadItemlist();
+        if(refund)
+        {
+            db.Format(query, sizeof(query), "UPDATE cold_prestige p JOIN cold_prestige_items i ON (p.steamid = i.steamid) SET p.prestige = p.prestige + %i WHERE i.itemid = %i", this.Price, this.ID);
+            deleteTxn.AddQuery(query);
+        }
+
+        db.Format(query, sizeof(query), "DELETE FROM cold_prestige_items WHERE itemid=%i;", this.ID);
+        deleteTxn.AddQuery(query);
+
+        db.Format(query, sizeof(query), "DELETE FROM cold_prestige_itemlist WHERE itemid=%i;", this.ID);
+        deleteTxn.AddQuery(query);
+
+        db.Execute(deleteTxn, SQL_DeleteItemSuccess, SQL_DeleteItemFailure);
+
+        // Delete the item instance
+        delete this;
     }
 
     /* Clones the given PItem as a new PItem representation, does not actually clone any Handles */
@@ -182,13 +196,12 @@ public void SQL_SaveItem(Database db, DBResultSet results, const char[] sError, 
     ReloadItemlist();
 }
 
-public void SQL_DeleteItem(Database db, DBResultSet results, const char[] sError, any data)
+void SQL_DeleteItemSuccess(Database db, any data, int numQueries, DBResultSet[] results, any[] queryData)
 {
-    if(results == null)
-    {
-        LogError("Failed to delete item from itemlist, error: %s", sError);
-        return;
-    }
-
     ReloadItemlist();
+}
+
+void SQL_DeleteItemFailure(Database db, any data, int numQueries, const char[] error, int failIndex, any[] queryData)
+{
+    LogError("Failed to delete item, failed on query %i, error: %s", failIndex, error);
 }
