@@ -90,6 +90,17 @@ public void OnPluginStart()
 
 	// Hook player_spawn to setup models and custom weapons
 	HookEvent("player_spawn", Event_PlayerSpawn);
+
+	if(g_bLate)
+	{
+		for(int i = 1; i < MaxClients; i++)
+		{
+			if(IsClientInGame(i))
+			{
+				OnClientPutInServer(i);
+			}
+		}
+	}
 }
 
 public void OnMapStart()
@@ -477,6 +488,22 @@ public void OnPlayerRunCmdPost(int client, int buttons, int impulse, const float
 			if(item == null)
 			{
 				CPrintToChat(client, "%s Unable to purchase model at this time, please try again later.", CMDTAG);
+				return;
+			}
+
+			if(player.HasItem(item))
+			{
+				PItem owned = player.GetInventoryItem(item.ID);
+				if(owned == null)
+				{
+					LogError("Failed to get item with id %i during preview selection", item.ID);
+					CPrintToChat(client, "%s Unable to purchase model at this time, please try again later.", CMDTAG);
+					return;
+				}
+
+				player.EquipItem(owned);
+				player.Chat("%s You have equipped your {green}%s{default} model!", CMDTAG, modelName);
+				ExitPreview(client);
 				return;
 			}
 
