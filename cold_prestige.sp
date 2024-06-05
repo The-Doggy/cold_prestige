@@ -212,7 +212,7 @@ void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 
 void SetupSpawn(PClient player)
 {
-	if(player == null || !player.Loaded) return;
+	if(player == null || !player.Loaded || GetClientTeam(player.ClientIndex) == 2) return;
 
 	// Ensure the player has their model and custom weapons given to them on spawn
 	char sModel[256];
